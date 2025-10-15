@@ -1,48 +1,156 @@
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import UserTable from '@/components/UserTable/UserTable';
+// import Navbar from '@/components/Navbar';
 
-function Dashboard() {
+const Dashboard = () => {
   const navigate = useNavigate();
+  const [users, setUsers] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    fetchUsers(currentPage);
+  }, [currentPage]);
+
+  useEffect(() => {
+    // Filter users when search query changes
+    if (searchQuery.trim() === '') {
+      setFilteredUsers(users);
+    } else {
+      const filtered = users.filter(user => {
+        const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
+        const email = user.email.toLowerCase();
+        const query = searchQuery.toLowerCase();
+        return fullName.includes(query) || email.includes(query);
+      });
+      setFilteredUsers(filtered);
+    }
+  }, [searchQuery, users]);
+
+  const fetchUsers = async (page) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await fetch(`https://reqres.in/api/users?page=${page}`, {
+        headers: {
+          'x-api-key': 'reqres-free-v1'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+
+      const data = await response.json();
+      setUsers(data.data);
+      setFilteredUsers(data.data);
+      setTotalPages(data.total_pages);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+      setSearchQuery('');// reset search pas ganti pagination
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+      setSearchQuery('');
+    }
+  };
 
   const handleLogout = () => {
-    // Clear any stored tokens/auth data here
-    navigate("/");
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/');
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Dashboard Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
-          <button
-            onClick={handleLogout}
-            className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-          >
-            Logout
-          </button>
-        </div>
-      </header>
-
-      {/* Dashboard Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Users Table Card */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">Users Management</h2>
-            <p className="text-gray-600">Manage your users here</p>
-            {/* Add your users table component here */}
+    <div className="min-h-screen bg-gray-100">
+      <div className="pt-20 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* header dan logout */}
+          <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">User Dashboard</h1>
+              <p className="text-gray-600">Manage and view all users from ReqRes API</p>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-2 bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors shadow-md"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+              Logout
+            </button>
           </div>
 
-          {/* Orders/Reservations Card */}
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">Orders/Reservations</h2>
-            <p className="text-gray-600">View and manage orders</p>
-            {/* Add your orders component here */}
+          {/* Search Bar */}
+          <div className="mb-6">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg
+                  className="h-5 w-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg p-6">
+            <UserTable 
+              users={filteredUsers}
+              loading={loading}
+              error={error}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPrevPage={handlePrevPage}
+              onNextPage={handleNextPage}
+            />
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
-}
+};
 
 export default Dashboard;
