@@ -1,16 +1,51 @@
-# React + Vite
+# Mini Project Dewa Arjuna
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Proyek ini merupakan mini project dari program **Frontend Bootcamp Dibimbing**.  
+Dibangun menggunakan **Vite + React + Tailwind CSS**, dengan tujuan untuk menerapkan konsep dasar pengembangan web frontend modern.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Library yang Digunakan
 
-## React Compiler
+- **React** – Library utama untuk membangun antarmuka pengguna.  
+- **Vite** – Build tool modern untuk pengembangan cepat dan efisien.  
+- **React Router DOM** – Untuk routing antar halaman.  
+- **Axios** – Untuk melakukan permintaan HTTP ke API.  
+- **Tailwind CSS** – Framework CSS utility-first untuk styling cepat dan konsisten.  
+- **@tailwindcss/vite** – Integrasi Tailwind langsung dengan Vite.  
 
-The React Compiler is not enabled on this template. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Fitur Tambahan di Luar Requirement Utama
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- **Konfigurasi Path Alias (`@`)** untuk import file yang lebih rapi.  
+- **Struktur folder modular**: pemisahan antara `pages` dan `components`.  
+- **Integrasi API dummy (ReqRes)** untuk testing login dan daftar user.  
+- **Desain responsif** dengan Tailwind CSS.  
+- **Penggunaan komponen reusable** seperti Navbar dan Form.  
+
+---
+
+## Repository GitHub
+
+Kode sumber proyek ini tersedia di:  
+[https://github.com/Dewarjuna/MiniProject_DewaArjuna.git](https://github.com/Dewarjuna/MiniProject_DewaArjuna.git)
+
+---
+
+## Cara Menjalankan Proyek
+
+Pastikan Node.js sudah terpasang, lalu jalankan perintah berikut di terminal:
+
+```bash
+# 1. Clone repository
+git clone https://github.com/Dewarjuna/MiniProject_DewaArjuna.git
+
+# 2. Masuk ke folder proyek
+cd MiniProject_DewaArjuna
+
+# 3. Install dependencies
+npm install
+
+# 4. Jalankan server pengembangan
+npm run dev
