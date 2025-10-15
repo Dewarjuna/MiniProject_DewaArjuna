@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext';
 import UserTable from '@/components/UserTable/UserTable';
-// import Navbar from '@/components/Navbar';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { logout, user } = useAuth();
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +61,7 @@ const Dashboard = () => {
   const handlePrevPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
-      setSearchQuery('');// reset search pas ganti pagination
+      setSearchQuery('');
     }
   };
 
@@ -72,8 +73,7 @@ const Dashboard = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    logout();
     navigate('/');
   };
 
@@ -84,8 +84,11 @@ const Dashboard = () => {
           {/* header dan logout */}
           <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">User Dashboard</h1>
-              <p className="text-gray-600">Manage and view all users from ReqRes API</p>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                User Dashboard
+                {user && <span className="text-lg text-gray-600 ml-2">- Welcome, {user.name}!</span>}
+              </h1>
+              <p className="text-gray-600">Manage and view all users</p>
             </div>
             <button
               onClick={handleLogout}

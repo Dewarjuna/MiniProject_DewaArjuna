@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import axios from "axios";
 
 function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,14 +22,14 @@ function Login() {
 
     if (localUser) {
       // kalo ada local, login pake data lokal
-      localStorage.setItem("token", localUser.token);
-      localStorage.setItem("currentUser", JSON.stringify({
+      const userData = {
         id: localUser.id,
         name: localUser.name,
         email: localUser.email,
         token: localUser.token
-      }));
-
+      };
+      
+      login(localUser.token, userData);
       setMessage("Login successful! Redirecting...");
       setTimeout(() => navigate("/dashboard"), 1000);
       setLoading(false);
@@ -60,14 +62,14 @@ function Login() {
         localStorage.setItem("users", JSON.stringify(users));
       }
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("currentUser", JSON.stringify({
+      const userData = {
         id: user.id,
         name: user.name,
         email: user.email,
         token: res.data.token
-      }));
+      };
 
+      login(res.data.token, userData);
       setMessage("Login successful! Redirecting...");
       setTimeout(() => navigate("/dashboard"), 1000);
 
