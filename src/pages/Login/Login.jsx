@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -21,10 +22,8 @@ function Login() {
         { headers: { "x-api-key": "reqres-free-v1" } }
         );
 
-        setMessage(`Login success! Token: ${res.data.token}`);
+        // setMessage(`Login success! Token: ${res.data.token}`);
         setTimeout(() => navigate("/home"), 1000);
-      // Redirect to Home.jsx
-      setTimeout(() => navigate("/home"), 1000);
     } catch {
       setMessage("Login failed. Check your credentials.");
     } finally {
