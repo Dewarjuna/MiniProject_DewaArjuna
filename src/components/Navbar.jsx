@@ -15,12 +15,17 @@ function Navbar() {
             <a href="#menu" className="hover:text-amber-600">Menu</a>
             <a href="#contact" className="hover:text-amber-600">Contact</a>
           </nav>
-          
+          <button
+            onClick={() => navigate("/register")}
+            className="bg-amber-800 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors"
+          >
+            Sign Up
+          </button>
           <button
             onClick={() => navigate("/login")}
             className="bg-amber-800 text-white px-4 py-2 rounded-lg hover:bg-amber-700 transition-colors"
           >
-            Admin
+            Login
           </button>
         </div>
       </div>
