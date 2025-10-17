@@ -19,7 +19,7 @@ const Dashboard = () => {
   }, [currentPage]);
 
   useEffect(() => {
-    // Filter users when search query changes
+    // ngefilter user pas di query
     if (searchQuery.trim() === '') {
       setFilteredUsers(users);
     } else {

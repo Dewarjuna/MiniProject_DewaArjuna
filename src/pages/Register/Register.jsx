@@ -28,42 +28,32 @@ function Register() {
     }
 
     try {
-      const users = JSON.parse(localStorage.getItem("users") || "[]");
-      
-      const existingUser = users.find(u => u.email === email);
-      if (existingUser) {
-        setMessage("Email already registered! Please login.");
+      const response = await fetch("https://reqres.in/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": "reqres-free-v1",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setMessage(data.error || "Registration failed");
         setLoading(false);
         return;
       }
 
-      const newUser = {// create user pake fake token
-        id: Date.now().toString(),
-        token: `local-token-${Date.now()}`, // generate token lokal
-        name: name,
-        email: email,
-        password: password, // store pass di lokal
-        createdAt: new Date().toISOString(),
-        orders: [],
-        reservations: []
-      };
-
-      // Save to users array
-      users.push(newUser);
-      localStorage.setItem("users", JSON.stringify(users));
-
-      // Set current user session with token
-      localStorage.setItem("token", newUser.token);
-      localStorage.setItem("currentUser", JSON.stringify({
-        id: newUser.id,
-        name: newUser.name,
-        email: newUser.email,
-        token: newUser.token
-      }));
+      localStorage.setItem("token", data.token);//storage
+      localStorage.setItem(
+        "currentUser",
+        JSON.stringify({ name, email, token: data.token })
+      );
 
       setMessage("Registration successful! Redirecting...");
       setTimeout(() => navigate("/dashboard"), 1000);
-      
+
     } catch (error) {
       console.error(error);
       setMessage("Registration failed. Please try again.");
@@ -101,7 +91,7 @@ function Register() {
             <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
             <input
               type="email"
-              placeholder="Enter any email"
+              placeholder="Enter a valid email"
               className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
