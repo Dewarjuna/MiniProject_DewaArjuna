@@ -5,6 +5,8 @@ import Login from "@/pages/Login/Login";
 import Register from "@/pages/Register/Register";
 import Home from "@/pages/Home/Home";
 import Dashboard from "@/pages/Dashboard/Dashboard";
+import UserDetail from "@/pages/UserDetail/UserDetail";
+import EditUser from "@/pages/EditUser/EditUser";
 
 function App() {
   return (
@@ -19,6 +21,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/dashboard/user/:id" 
+            element={
+              <ProtectedRoute>
+                <UserDetail />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/dashboard/user/:id/edit" 
+            element={
+              <ProtectedRoute>
+                <EditUser />
               </ProtectedRoute>
             } 
           />

@@ -1,29 +1,75 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import DeleteModal from '@/components/DeleteModal/DeleteModal';
 
 const UserTable = ({ 
   users = [], 
   loading = false, 
-  error = null,
-  currentPage = 1,
-  totalPages = 1,
-  onPrevPage,
-  onNextPage
+  error = null
 }) => {
+  const navigate = useNavigate();
   const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
-  const openModal = (user) => {
-    setSelectedUser(user);
-    setIsModalOpen(true);
-    // biar table gk scroll pas modal open
-    document.body.style.overflow = 'hidden';
-  };
+  // const openModal = (user) => {
+  //   setSelectedUser(user);
+  //   setIsModalOpen(true);
+  //   // biar table gk scroll pas modal open
+  //   document.body.style.overflow = 'hidden';
+  // };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedUser(null);
     // biar table bisa scroll
     document.body.style.overflow = 'unset';
+  };
+
+  const handleViewUser = (user) => {
+    navigate(`/dashboard/user/${user.id}`);
+  };
+
+  const handleEditUser = (user) => {
+    navigate(`/dashboard/user/${user.id}/edit`);
+  };
+
+  const handleDeleteUser = (user) => {
+    setUserToDelete(user);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!userToDelete) return;
+    
+    setDeleting(true);
+    try {
+      const response = await fetch(`https://reqres.in/api/users/${userToDelete.id}`, {
+        method: 'DELETE',
+        headers: {
+          'x-api-key': 'reqres-free-v1'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete user');
+      }
+
+      alert('User deleted successfully!');
+      setDeleteModalOpen(false);
+      setUserToDelete(null);
+    } catch (err) {
+      alert('Failed to delete user: ' + err.message);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteModalOpen(false);
+    setUserToDelete(null);
   };
 
   if (loading) {
@@ -93,31 +139,73 @@ const UserTable = ({
                     {user.email}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm">
-                    <button
-                      onClick={() => openModal(user)}
-                      className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleViewUser(user)}
+                        className="inline-flex items-center gap-1 bg-blue-600 text-white px-3 py-1.5 rounded-md hover:bg-blue-700 transition-colors"
                       >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                      <span className="hidden sm:inline">Detail</span>
-                    </button>
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          />
+                        </svg>
+                        <span className="hidden sm:inline">View</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => handleEditUser(user)}
+                        className="inline-flex items-center gap-1 bg-green-600 text-white px-3 py-1.5 rounded-md hover:bg-green-700 transition-colors"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                        <span className="hidden sm:inline">Edit</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => handleDeleteUser(user)}
+                        className="inline-flex items-center gap-1 bg-red-600 text-white px-3 py-1.5 rounded-md hover:bg-red-700 transition-colors"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                          />
+                        </svg>
+                        <span className="hidden sm:inline">Delete</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -130,39 +218,6 @@ const UserTable = ({
             )}
           </tbody>
         </table>
-      </div>
-      {/* pagination */}
-      <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
-        <div className="text-sm text-gray-700">
-          Page <span className="font-medium">{currentPage}</span> of{' '}
-          <span className="font-medium">{totalPages}</span>
-        </div>
-        
-        <div className="flex gap-2">
-          <button
-            onClick={onPrevPage}
-            disabled={currentPage === 1}
-            className={`px-4 py-2 text-sm font-medium rounded-md ${
-              currentPage === 1
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-            } transition-colors`}
-          >
-            Previous
-          </button>
-          
-          <button
-            onClick={onNextPage}
-            disabled={currentPage === totalPages}
-            className={`px-4 py-2 text-sm font-medium rounded-md ${
-              currentPage === totalPages
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
-            } transition-colors`}
-          >
-            Next
-          </button>
-        </div>
       </div>
 
       {/* Modal */}
@@ -263,6 +318,14 @@ const UserTable = ({
           </div>
         </div>
       )}
+
+      <DeleteModal
+        isOpen={deleteModalOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        user={userToDelete}
+        loading={deleting}
+      />
     </div>
   );
 };
