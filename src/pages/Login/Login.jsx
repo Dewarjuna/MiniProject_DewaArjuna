@@ -1,84 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import axios from "axios";
+import { useLogin } from "@/hooks/useLogin";
 
 function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const { loading, message, handleLogin, setMessage } = useLogin();
 
-  const handleLogin = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setMessage("");
-
-    // cek local
-    const users = JSON.parse(localStorage.getItem("users") || "[]");
-    const localUser = users.find(u => u.email === email && u.password === password);
-
-    if (localUser) {
-      // kalo ada local, login pake data lokal
-      const userData = {
-        id: localUser.id,
-        name: localUser.name,
-        email: localUser.email,
-        token: localUser.token
-      };
-      
-      login(localUser.token, userData);
-      setMessage("Login successful! Redirecting...");
-      setTimeout(() => navigate("/dashboard"), 1000);
-      setLoading(false);
-      return;
-    }
-
-    // local/reqres
-    try {
-      const res = await axios.post(
-        "https://reqres.in/api/login",
-        { email, password },
-        { headers: { "x-api-key": "reqres-free-v1" } }
-      );
-
-      // Create/update user in localStorage
-      let user = users.find(u => u.email === email);
-
-      if (!user) {
-        user = {
-          id: Date.now().toString(),
-          token: res.data.token,
-          name: email.split('@')[0],
-          email: email,
-          password: password,
-          createdAt: new Date().toISOString(),
-          orders: [],
-          reservations: []
-        };
-        users.push(user);
-        localStorage.setItem("users", JSON.stringify(users));
-      }
-
-      const userData = {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        token: res.data.token
-      };
-
-      login(res.data.token, userData);
-      setMessage("Login successful! Redirecting...");
-      setTimeout(() => navigate("/dashboard"), 1000);
-
-    } catch (error) {
-      console.error(error);
-      setMessage("Invalid email or password.");
-    } finally {
-      setLoading(false);
-    }
+    await handleLogin(email, password);
   };
 
   return (
@@ -93,7 +25,7 @@ function Login() {
       <div className="bg-white p-8 rounded-2xl shadow-xl w-96">
         <h2 className="text-3xl font-bold mb-6 text-center text-amber-800">Login</h2>
 
-        <form onSubmit={handleLogin}>
+        <form onSubmit={onSubmit}>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
             <input

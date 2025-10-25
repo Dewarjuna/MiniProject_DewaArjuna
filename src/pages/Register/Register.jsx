@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useRegister } from "@/hooks/useRegister";
 
 function Register() {
   const navigate = useNavigate();
@@ -7,59 +8,11 @@ function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const { loading, message, handleRegister, setMessage } = useRegister();
 
-  const handleRegister = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setMessage("");
-
-    if (password !== confirmPassword) {
-      setMessage("Passwords don't match!");
-      setLoading(false);
-      return;
-    }
-
-    if (password.length < 6) {
-      setMessage("Password must be at least 6 characters.");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch("https://reqres.in/api/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": "reqres-free-v1",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setMessage(data.error || "Registration failed");
-        setLoading(false);
-        return;
-      }
-
-      localStorage.setItem("token", data.token);//storage
-      localStorage.setItem(
-        "currentUser",
-        JSON.stringify({ name, email, token: data.token })
-      );
-
-      setMessage("Registration successful! Redirecting...");
-      setTimeout(() => navigate("/dashboard"), 1000);
-
-    } catch (error) {
-      console.error(error);
-      setMessage("Registration failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+    await handleRegister(name, email, password, confirmPassword);
   };
 
   return (
@@ -74,7 +27,7 @@ function Register() {
       <div className="bg-white p-8 rounded-2xl shadow-xl w-96">
         <h2 className="text-3xl font-bold mb-6 text-center text-amber-800">Sign Up</h2>
 
-        <form onSubmit={handleRegister}>
+        <form onSubmit={onSubmit}>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
             <input
