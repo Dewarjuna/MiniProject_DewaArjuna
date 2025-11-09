@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { memo } from 'react';
+import UserAvatar from '@/components/UserAvatar/UserAvatar';
 
-const DeleteModal = ({ 
+const DeleteModal = memo(({ 
   isOpen, 
   onClose, 
   onConfirm, 
@@ -46,14 +47,13 @@ const DeleteModal = ({
               </p>
             </div>
           </div>
-
           {user && (
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <div className="flex items-center space-x-3">
-                <img
+                <UserAvatar 
                   src={user.avatar}
                   alt={`${user.first_name} ${user.last_name}`}
-                  className="h-12 w-12 rounded-full object-cover"
+                  size="md"
                 />
                 <div>
                   <p className="font-medium text-gray-900">
@@ -92,6 +92,8 @@ const DeleteModal = ({
       </div>
     </div>
   );
-};
+});
+
+DeleteModal.displayName = 'DeleteModal';
 
 export default DeleteModal;

@@ -1,0 +1,9 @@
+{
+  // kumpulan aturan
+  // preset mengkonversi js modern jadi versi kompetible
+  // reset-react untuk jsx
+  "presets": [
+    ["@babel/preset-env", { "targets": { "node": "current" } }],
+    ["@babel/preset-react", { "runtime": "automatic" }]
+  ]
+}

@@ -1,11 +1,23 @@
-import React from 'react';
+import React, { useCallback, useRef, memo } from 'react';
 
-const SearchBar = ({ 
+const SearchBar = memo(({ 
   searchQuery, 
   onSearchChange, 
   placeholder = "Search...",
   className = ""
 }) => {
+  const debounceTimerRef = useRef(null);
+
+  const handleSearchChange = useCallback((e) => {
+    const value = e.target.value;
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    debounceTimerRef.current = setTimeout(() => {
+      onSearchChange(value);
+    }, 300);
+  }, [onSearchChange]);
   return (
     <div className={`mb-6 ${className}`}>
       <div className="relative">
@@ -28,12 +40,12 @@ const SearchBar = ({
           type="text"
           placeholder={placeholder}
           value={searchQuery}
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={handleSearchChange}
           className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all"
         />
       </div>
     </div>
   );
-};
+});
 
 export default SearchBar;

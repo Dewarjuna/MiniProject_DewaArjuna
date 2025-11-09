@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useUsersFetch } from '@/hooks/useUsersFetch';
 import UserTable from '@/components/UserTable/UserTable';
 import SearchBar from '@/components/SearchBar/SearchBar';
 import Pagination from '@/components/Pagination/Pagination';
@@ -8,81 +9,58 @@ import Pagination from '@/components/Pagination/Pagination';
 const Dashboard = () => {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
-  const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { users, loading, error, totalPages, fetchUsers } = useUsersFetch();
+  
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Fetch users when currentPage changes
   useEffect(() => {
     fetchUsers(currentPage);
-  }, [currentPage]);
+  }, [currentPage, fetchUsers]);
 
-  useEffect(() => {
-    // Filter users when search query changes
+  // Memoized filter logic
+  const filteredUsers = useMemo(() => {
     if (searchQuery.trim() === '') {
-      setFilteredUsers(users);
-    } else {
-      const filtered = users.filter(user => {
-        const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
-        const email = user.email.toLowerCase();
-        const query = searchQuery.toLowerCase();
-        return fullName.includes(query) || email.includes(query);
-      });
-      setFilteredUsers(filtered);
+      return users;
     }
+    
+    return users.filter(user => {
+      const fullName = `${user.first_name} ${user.last_name}`.toLowerCase();
+      const email = user.email.toLowerCase();
+      const query = searchQuery.toLowerCase();
+      return fullName.includes(query) || email.includes(query);
+    });
   }, [searchQuery, users]);
 
-  const fetchUsers = async (page) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await fetch(`https://reqres.in/api/users?page=${page}`, {
-        headers: {
-          'x-api-key': 'reqres-free-v1'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch users');
-      }
-
-      const data = await response.json();
-      setUsers(data.data);
-      setFilteredUsers(data.data);
-      setTotalPages(data.total_pages);
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
-  };
-
-  const handlePrevPage = () => {
+  const handlePrevPage = useCallback(() => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
       setSearchQuery('');
     }
-  };
+  }, [currentPage]);
 
-  const handleNextPage = () => {
+  const handleNextPage = useCallback(() => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
       setSearchQuery('');
     }
-  };
+  }, [currentPage, totalPages]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     logout();
     navigate('/');
-  };
+  }, [logout, navigate]);
+
+  const handleSearchChange = useCallback((query) => {
+    setSearchQuery(query);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="pt-20 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
+          {/* Header */}
           <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -112,12 +90,14 @@ const Dashboard = () => {
             </button>
           </div>
 
+          {/* Search Bar */}
           <SearchBar
             searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
+            onSearchChange={handleSearchChange}
             placeholder="Search by name or email..."
           />
 
+          {/* Users Table */}
           <div className="bg-white rounded-lg p-6">
             <UserTable 
               users={filteredUsers}

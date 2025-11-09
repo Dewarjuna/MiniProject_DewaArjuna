@@ -1,76 +1,68 @@
-import { useState } from 'react';
+import { memo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUserDelete } from '@/hooks/useUserDelete';
+import UserAvatar from '@/components/UserAvatar/UserAvatar';
+import UserInfo from '@/components/UserInfo/UserInfo';
+import ModalHeader from '@/components/ModalHeader/ModalHeader';
 import DeleteModal from '@/components/DeleteModal/DeleteModal';
 
-const UserTable = ({ 
+const UserTable = memo(({ 
   users = [], 
   loading = false, 
   error = null
 }) => {
   const navigate = useNavigate();
+  const { deleteUser, deleting } = useUserDelete();
+  
   const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-  const [deleting, setDeleting] = useState(false);
 
-  // const openModal = (user) => {
-  //   setSelectedUser(user);
-  //   setIsModalOpen(true);
-  //   // biar table gk scroll pas modal open
-  //   document.body.style.overflow = 'hidden';
-  // };
-
-  const closeModal = () => {
+  // Modal handlers
+  const closeModal = useCallback(() => {
     setIsModalOpen(false);
     setSelectedUser(null);
-    // biar table bisa scroll
     document.body.style.overflow = 'unset';
-  };
+  }, []);
 
-  const handleViewUser = (user) => {
+  const openModal = useCallback((user) => {
+    setSelectedUser(user);
+    setIsModalOpen(true);
+    document.body.style.overflow = 'hidden';
+  }, []);
+
+  // User action handlers
+  const handleViewUser = useCallback((user) => {
     navigate(`/dashboard/user/${user.id}`);
-  };
+  }, [navigate]);
 
-  const handleEditUser = (user) => {
+  const handleEditUser = useCallback((user) => {
     navigate(`/dashboard/user/${user.id}/edit`);
-  };
+  }, [navigate]);
 
-  const handleDeleteUser = (user) => {
+  const handleDeleteUser = useCallback((user) => {
     setUserToDelete(user);
     setDeleteModalOpen(true);
-  };
+  }, []);
 
-  const confirmDelete = async () => {
+  const confirmDelete = useCallback(async () => {
     if (!userToDelete) return;
     
-    setDeleting(true);
-    try {
-      const response = await fetch(`https://reqres.in/api/users/${userToDelete.id}`, {
-        method: 'DELETE',
-        headers: {
-          'x-api-key': 'reqres-free-v1'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete user');
-      }
-
+    const success = await deleteUser(userToDelete.id);
+    if (success) {
       alert('User deleted successfully!');
       setDeleteModalOpen(false);
       setUserToDelete(null);
-    } catch (err) {
-      alert('Failed to delete user: ' + err.message);
-    } finally {
-      setDeleting(false);
+    } else {
+      alert('Failed to delete user');
     }
-  };
+  }, [userToDelete, deleteUser]);
 
-  const cancelDelete = () => {
+  const cancelDelete = useCallback(() => {
     setDeleteModalOpen(false);
     setUserToDelete(null);
-  };
+  }, []);
 
   if (loading) {
     return (
@@ -80,6 +72,7 @@ const UserTable = ({
     );
   }
 
+  // Error state
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
@@ -90,7 +83,7 @@ const UserTable = ({
 
   return (
     <div className="w-full">
-      {/* table */}
+      {/* Table */}
       <div className="overflow-x-auto shadow-md rounded-lg">
         <table className="min-w-full bg-white">
           <thead className="bg-gray-800 text-white">
@@ -120,10 +113,10 @@ const UserTable = ({
               users.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <img
-                      src={user.avatar}
+                    <UserAvatar 
+                      src={user.avatar} 
                       alt={`${user.first_name} ${user.last_name}`}
-                      className="h-10 w-10 rounded-full object-cover"
+                      size="sm"
                     />
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -220,7 +213,7 @@ const UserTable = ({
         </table>
       </div>
 
-      {/* Modal */}
+      {/* User Details Modal */}
       {isModalOpen && selectedUser && (
         <div 
           className="fixed inset-0 bg-black/20 bg-opacity-50 z-50 flex items-center justify-center p-4"
@@ -230,83 +223,28 @@ const UserTable = ({
             className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <h3 className="text-2xl font-bold text-gray-900">User Details</h3>
-              <button
-                onClick={closeModal}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
+            <ModalHeader title="User Details" onClose={closeModal} />
             <div className="p-6">
-              {/* pfp */}
               <div className="flex justify-center mb-6">
-                <img
+                <UserAvatar 
                   src={selectedUser.avatar}
                   alt={`${selectedUser.first_name} ${selectedUser.last_name}`}
-                  className="h-32 w-32 rounded-full object-cover border-4 border-blue-500 shadow-lg"
+                  size="lg"
+                  border={true}
                 />
               </div>
               <div className="space-y-4">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <label className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                    User ID
-                  </label>
-                  <p className="mt-1 text-lg font-semibold text-gray-900">
-                    #{selectedUser.id}
-                  </p>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <label className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                    Full Name
-                  </label>
-                  <p className="mt-1 text-lg font-semibold text-gray-900">
-                    {selectedUser.first_name} {selectedUser.last_name}
-                  </p>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <label className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                    First Name
-                  </label>
-                  <p className="mt-1 text-lg font-semibold text-gray-900">
-                    {selectedUser.first_name}
-                  </p>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <label className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                    Last Name
-                  </label>
-                  <p className="mt-1 text-lg font-semibold text-gray-900">
-                    {selectedUser.last_name}
-                  </p>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <label className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                    Email Address
-                  </label>
-                  <p className="mt-1 text-lg font-semibold text-gray-900 break-words">
-                    {selectedUser.email}
-                  </p>
-                </div>
+                <UserInfo label="User ID" value={`#${selectedUser.id}`} />
+                <UserInfo 
+                  label="Full Name" 
+                  value={`${selectedUser.first_name} ${selectedUser.last_name}`} 
+                />
+                <UserInfo label="First Name" value={selectedUser.first_name} />
+                <UserInfo label="Last Name" value={selectedUser.last_name} />
+                <UserInfo label="Email Address" value={selectedUser.email} />
               </div>
             </div>
+
             <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
               <button
                 onClick={closeModal}
@@ -318,7 +256,6 @@ const UserTable = ({
           </div>
         </div>
       )}
-
       <DeleteModal
         isOpen={deleteModalOpen}
         onClose={cancelDelete}
@@ -328,6 +265,8 @@ const UserTable = ({
       />
     </div>
   );
-};
+});
+
+UserTable.displayName = 'UserTable';
 
 export default UserTable;
